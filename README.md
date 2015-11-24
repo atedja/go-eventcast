@@ -1,6 +1,6 @@
 # chancast
 
-Broadcasting using channels, rather than `sync.Cond`.
+Broadcasting using channels, rather than `sync.Cond`, because `sync.Cond.Wait` sucks.
 
 ### Quick Example
 
@@ -9,11 +9,13 @@ Broadcasting using channels, rather than `sync.Cond`.
 
   // spawn workers
   go func() {
-    select {
-    case <-chancast.Wait("we are closed"):
-      return
-    default:
-      // do other things
+    for {
+      select {
+      case <-chancast.Wait("we are closed"):
+        return
+      default:
+        // do other things
+      }
     }
   }()
 
