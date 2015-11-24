@@ -5,20 +5,21 @@ Broadcasting using channels, rather than `sync.Cond`, because `sync.Cond.Wait` s
 ### Quick Example
 
 ```go
-  chancast.Init("we are closed")
-
   // spawn workers
-  go func() {
-    for {
-      select {
-      case <-chancast.Wait("we are closed"):
-        return
-      default:
-        // do other things
+  for i := 0; i < 100; i++ {
+    go func() {
+      closed := chancast.Listen("we are closed")
+      for {
+        select {
+        case <-closed:
+          return
+        default:
+          // do other things
+        }
       }
-    }
-  }()
+    }()
+  }
 
-  // sometime later..
+  // somewhere, sometime later..
   chancast.Broadcast("we are closed")
 ```

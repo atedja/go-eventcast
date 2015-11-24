@@ -19,29 +19,26 @@ func Broadcast(key string) {
 	channels.Lock()
 	defer channels.Unlock()
 	chans := channels.list[key]
-	for i := len(chans) - 1; i >= 0; i-- {
-		chans[i] <- true
-		chans = append(chans[:i], chans[i+1:]...)
+	if chans != nil {
+		count := len(chans)
+		for i := 0; i < count; i++ {
+			chans[i] <- true
+			close(chans[i])
+		}
+		channels.list[key] = nil
 	}
-	channels.list[key] = chans
 }
 
-// Listening...
+// Listener. Retrieve a channel that listens to a broadcast.
+// This method creates a one-time use channel, everytime, and a Broadcast will remove it.
 //
-func Wait(key string) <-chan bool {
+func Listen(key string) chan bool {
 	channels.Lock()
 	defer channels.Unlock()
-	out := make(chan bool)
-	channels.list[key] = append(channels.list[key], out)
-	return out
-}
-
-// Must be called before using the key.
-//
-func Init(key string) {
-	channels.Lock()
-	defer channels.Unlock()
+	out := make(chan bool, 1)
 	if channels.list[key] == nil {
 		channels.list[key] = make([]chan bool, 0)
 	}
+	channels.list[key] = append(channels.list[key], out)
+	return out
 }
