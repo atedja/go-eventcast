@@ -6,38 +6,43 @@ import (
 
 type channelList struct {
 	sync.Mutex
-	list map[string][]chan bool
+	list map[string][]chan interface{}
 }
 
 var channels = channelList{
-	list: make(map[string][]chan bool),
+	list: make(map[string][]chan interface{}),
 }
 
-// Broadcasts, unblock all channels.
+// Broadcast, unblock all channels.
 //
 func Broadcast(key string) {
+	BroadcastWithValue(key, nil)
+}
+
+// Broadcast with a value.
+//
+func BroadcastWithValue(key string, value interface{}) {
 	channels.Lock()
 	defer channels.Unlock()
 	chans := channels.list[key]
 	if chans != nil {
-		count := len(chans)
-		for i := 0; i < count; i++ {
-			chans[i] <- true
-			close(chans[i])
+		for _, ch := range chans {
+			ch <- value
+			close(ch)
 		}
 		channels.list[key] = nil
 	}
 }
 
-// Listener. Retrieve a channel that listens to a broadcast.
-// This method creates a one-time use channel, everytime, and a Broadcast will remove it.
+// Listener. Retrieve a channel that listens to a broadcast event.
+// This method creates a one-time use channel, everytime, and a Broadcast() will close and remove them.
 //
-func Listen(key string) chan bool {
+func Listen(key string) chan interface{} {
 	channels.Lock()
 	defer channels.Unlock()
-	out := make(chan bool, 1)
+	out := make(chan interface{}, 1)
 	if channels.list[key] == nil {
-		channels.list[key] = make([]chan bool, 0)
+		channels.list[key] = make([]chan interface{}, 0, 8)
 	}
 	channels.list[key] = append(channels.list[key], out)
 	return out

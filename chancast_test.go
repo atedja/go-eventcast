@@ -1,18 +1,19 @@
 package chancast
 
 import (
+	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 	"time"
 )
 
-func TestEmptyBroadcast(t *testing.T) {
+func TestNoListener(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		Broadcast("hello")
 	}
 }
 
-func TestSingleBroadcast(t *testing.T) {
+func TestSingleListener(t *testing.T) {
 	go func() {
 		time.Sleep(100 * time.Millisecond)
 		Broadcast("hello")
@@ -21,7 +22,7 @@ func TestSingleBroadcast(t *testing.T) {
 	<-Listen("hello")
 }
 
-func TestMultipleBroadcast(t *testing.T) {
+func TestMultipleListeners(t *testing.T) {
 	wg := &sync.WaitGroup{}
 	wg.Add(100)
 	for i := 0; i < 100; i++ {
@@ -33,6 +34,23 @@ func TestMultipleBroadcast(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 	Broadcast("hello")
+
+	wg.Wait()
+}
+
+func TestBroadcastWithValue(t *testing.T) {
+	wg := &sync.WaitGroup{}
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
+		go func() {
+			data := <-Listen("hello")
+			assert.Equal(t, "value", data.(string))
+			wg.Done()
+		}()
+	}
+
+	time.Sleep(100 * time.Millisecond)
+	BroadcastWithValue("hello", "value")
 
 	wg.Wait()
 }
