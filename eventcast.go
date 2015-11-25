@@ -4,12 +4,10 @@ import (
 	"sync"
 )
 
-type channelList struct {
+var channels = struct {
 	sync.Mutex
 	list map[string][]chan interface{}
-}
-
-var channels = channelList{
+}{
 	list: make(map[string][]chan interface{}),
 }
 
