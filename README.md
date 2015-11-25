@@ -1,9 +1,8 @@
-# chancast
+# eventcast
 
-Broadcasting using channels, rather than `sync.Cond`, because `sync.Cond.Wait` sucks.
+Simple event broadcasting using channels. No locking needed.
 
 ### Examples
-
 
 #### Signaling arbitrary number of workers
 
@@ -11,7 +10,7 @@ Broadcasting using channels, rather than `sync.Cond`, because `sync.Cond.Wait` s
   // spawn workers
   for i := 0; i < 100; i++ {
     go func() {
-      closed := chancast.Listen("we are closed")
+      closed := eventcast.Listen("we are closed")
       for {
         select {
         case <-closed:
@@ -24,28 +23,31 @@ Broadcasting using channels, rather than `sync.Cond`, because `sync.Cond.Wait` s
   }
 
   // somewhere, sometime later..
-  chancast.Broadcast("we are closed")
+  eventcast.Broadcast("we are closed")
 ```
 
 #### Broadcasting a value to multiple listeners
 
 ```go
-  // goroutines waiting for some result
+  // goroutines waiting for some result or timeout.
   for i := 0; i < 10; i++ {
     go func() {
       select {
-      case value := <-chancast.Listen("result"):
-        // do something with result
+      case value := <-eventcast.Listen("result"):
+        // do something with value
+      case <-time.After(1 * time.Second):
+        // timeout!
+        break
       }
     }()
   }
 
   // some worker
   go func() {
-    // doing something
-    value := "result of processing some data"
+    // doing something...
 
-    chancast.BroadcastWithValue("result", value)
+    value := "result of processing some data"
+    eventcast.BroadcastWithValue("result", value)
 
     // continue doing more
   }()

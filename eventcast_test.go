@@ -1,4 +1,4 @@
-package chancast
+package eventcast
 
 import (
 	"github.com/stretchr/testify/assert"
