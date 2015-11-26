@@ -1,7 +1,6 @@
 # eventcast
 
-Simple event broadcasting. Manage your goroutines with an event string rather
-than passing objects or channels around.
+Simple event broadcasting.
 
 ### Examples
 
