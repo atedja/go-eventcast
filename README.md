@@ -57,14 +57,27 @@ Simple event broadcasting using channels. No locking needed.
 
 ```go
   // go pig!
-  listener := eventcast.Listen("finished")
+  finished := eventcast.Listen("finished")
   for i := 0; i < 10; i++ {
     go func(i int) {
+      <-eventcast.Listen("ready")
+      <-eventcast.Listen("set")
+      <-eventcast.Listen("go")
       time.Sleep(time.Duration(rand.Intn(5000)) * time.Millisecond)
       eventcast.BroadcastWithValue("finished", i)
     }(i)
   }
 
-  winner := <-listener
+  // Allow some time for the pigs to get ready
+  <-time.After(10 * time.Milisecond)
+
+  eventcast.Broadcast("ready")
+  <-time.After(1 * time.Second)
+
+  eventcast.Broadcast("set")
+  <-time.After(1 * time.Second)
+
+  eventcast.Broadcast("go")
+  winner := <-finished
   fmt.Println("Winner is Pig", winner.(int))
 ```
