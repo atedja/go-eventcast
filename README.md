@@ -1,6 +1,7 @@
 # eventcast
 
-Simple event broadcasting using channels. No locking needed.
+Simple event broadcasting. Manage your goroutines with an event string rather
+than passing objects or channels around.
 
 ### Examples
 
