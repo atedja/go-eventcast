@@ -1,5 +1,7 @@
 # eventcast
 
+[![Build Status](https://travis-ci.org/atedja/go-eventcast.svg?branch=master)](https://travis-ci.org/atedja/go-eventcast)
+
 Simple event broadcasting.
 
 ### Examples
